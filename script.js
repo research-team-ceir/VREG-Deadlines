@@ -1,0 +1,504 @@
+// #region SETUP
+
+d3.select("body")
+    .append("div")
+    .attr("id", "vreg-deadlines")
+        .style("display", "grid")
+        .style("justify-content", "center")
+        .style("align-items", "center")
+        .style("max-width", "666px")
+        .style("margin-left", "auto")
+        .style("margin-right", "auto")
+
+d3.select("#vreg-deadlines")
+    .append("h3")
+        .text("Availability of Advance Voter Registration and Same-Day Registration, 2026 General Election")
+        .style("text-align", "center")
+        .style("font-size", "24px")
+        .style("font-family", "Source Serif 4");
+
+var svg = d3.select("#vreg-deadlines")
+    .append("svg")
+        .attr("width", 666)
+        .attr("height", 815);
+
+var bodyWidth = document.getElementsByTagName("body")[0].getBoundingClientRect().width;
+
+// #region TOOLTIP SETUP
+
+var tooltip = d3.select("#vreg-deadlines")
+    .append("div")
+    .attr("id", "tooltip")
+        .style("opacity", 0)
+        .style("position", "absolute")
+        .style("pointer-events", "none")
+        .style("background-color", "#ffffff")
+        .style("font-color", "black")
+        .style("box-shadow", "3px 3px 5px #969696")
+        .style("display", "flex")
+        .style("flex-direction", "column");
+
+var tooltipContent = tooltip.append("div")
+    .attr("id", "tooltip-content")
+        .style("padding", "0px 20px 0px 20px");
+
+var tooltipState = tooltipContent.append("p")
+    .style("text-align", "center")
+    .style("font-weight", "bold")
+
+var tooltipText = tooltipContent.append("p")
+
+// #endregion
+
+// #region LEGEND
+var legend = svg.append("g")
+    .attr("id", "legend");
+
+var advBtn = legend
+    .append("circle")
+        .attr("cx", 20)
+        .attr("cy", 20)
+        .attr("r", 8)
+        .attr("fill", "#d29d15")
+        .on("mouseover", function(e, d) {
+            d3.select(this)
+                .style("cursor", "pointer")
+        });
+
+legend
+    .append("text")
+        .text("Advance Voter Registration")
+        .attr("x", 35)
+        .attr("y", 25);
+
+var sdrBtn = legend
+    .append("circle")
+        .attr("cx", 275)
+        .attr("cy", 20)
+        .attr("r", 8)
+        .attr("fill", "#345188")
+        .on("mouseover", function(e, d) {
+            d3.select(this)
+                .style("cursor", "pointer")
+        });
+
+legend
+    .append("text")
+        .text("Same-Day Registration")
+        .attr("x", 290)
+        .attr("y", 25);
+
+var legendWidth = legend.node().getBoundingClientRect().width;
+var legendx = legend.node().getBoundingClientRect().x;
+legend.attr("transform", "translate(" + ((666-legendWidth) / 2 - (legendx-((bodyWidth-666)/2))) + ", 0)");
+
+var overlapLegend = legend.append("g")
+    .attr("id", "overlap-legend")
+
+overlapLegend
+    .append("circle")
+        .attr("cx", 20)
+        .attr("cy", 45)
+        .attr("r", 8)
+        .attr("fill", "#3b9171");
+
+overlapLegend
+    .append("text")
+        .text("Overlap")
+        .attr("x", 35)
+        .attr("y", 50);
+
+var overlapLegendWidth = overlapLegend.node().getBoundingClientRect().width;
+var overlapLegendx = overlapLegend.node().getBoundingClientRect().x;
+overlapLegend.attr("transform", "translate(" + ((666-overlapLegendWidth) / 2 - (overlapLegendx-((bodyWidth-666)/2))) + ", 0)");
+
+
+// #endregion
+
+var graph = svg.append("g")
+
+
+
+Promise.all([
+    d3.csv("data/VREG_deadlines.csv")
+]).then(function([deadlines]) {
+
+    var abb = deadlines.map(function(d) {
+        return d.Abb;
+    });
+
+    // #region AXIS
+
+    // left axis
+    var stateScale = d3.scalePoint()
+        .domain(abb)
+        .range([0, 700]);
+
+    var axisLeft = d3.axisLeft(stateScale)
+        .tickSizeInner(0)
+        .tickSizeOuter(0);
+    
+    var stateAxis = graph.append("g")
+        .attr("id", "state-axis")
+        .call(axisLeft);
+
+    stateAxis
+        .append("path")
+        .attr("d", "M0.5,0.5V719")
+        .attr("stroke", "currentColor");
+
+    stateAxis.selectAll("path")
+        .attr("transform", "translate(-1.3, -8)");
+
+    // bottom axis
+    var dateScale = d3.scaleTime()
+        .domain([new Date(2026, 8, 17), new Date(2026, 10, 3)])
+        .range([0, 550]);
+
+    var axisBottom = d3.axisBottom(dateScale)
+        .tickSizeOuter(0)
+        .tickFormat(d3.timeFormat('%b %e'))
+        .tickValues([new Date(2026, 8, 22), new Date(2026, 8, 29), new Date(2026, 9, 6),
+            new Date(2026, 9, 13), new Date(2026, 9, 20), new Date(2026, 9, 27), new Date(2026, 10, 3)
+        ]);
+
+    var dateAxis = graph.append("g")
+        .attr("id", "date-axis");
+
+    dateAxis.call(axisBottom)
+        .attr("transform", "translate(0, 710)");
+
+    d3.select("#state-axis")
+        .selectAll("text")
+        .attr("font-size", "13px")
+        .attr("class", function(d) {
+            return d3.select(this).text()
+        })
+
+    d3.select("#date-axis")
+        .selectAll("text")
+        .attr("font-size", "16px");
+        
+    var parseDate = d3.timeParse("%m/%d/%Y");
+
+    // #endregion
+
+    // #region DATA
+    
+    // SDR data
+    var sdrData = deadlines.filter(function (d) {
+        return d.SDR_start != 'NA';
+    });
+
+    var advData = deadlines.filter(function (d) {
+        return d.last_day_all != 'NA';
+    });
+
+    var overlapData = deadlines.filter(function (d) {
+        return d.SDR_start != 'NA' &  d.last_day_all != 'NA' & (parseDate(d.last_day_all) > parseDate(d.SDR_start)) ;
+    });
+
+    var dayData = deadlines.filter(function (d) {
+        return d.SDR_start == d.last_day_all;
+    });
+
+    // #endregion
+
+
+    var main = graph.append("g")
+
+    // #region LINES & POINTS
+
+    var sdrLines = main.append("g")
+        .attr("id", "sdr-lines")
+        .selectAll("rect")
+        .data(sdrData)
+        .enter()
+            .append("rect")
+            .attr("class", d => d.Abb)
+            .classed("sdr", true)
+            .attr("height", 4)
+            .attr("width", d => dateScale(parseDate(d.SDR_end)) - dateScale(parseDate(d.SDR_start)))
+            .attr("x", d => dateScale(parseDate(d.SDR_start)))
+            .attr("y", d => stateScale(d.Abb) - 2) // subtract half of rect height to center
+            .attr("fill", "#345188");
+
+    var advLines = main.append("g")
+        .attr("id", "adv-lines")
+        .selectAll("rect")
+        .data(advData)
+        .enter()
+            .append("rect")
+            .attr("class", d => d.Abb)
+            .classed("adv", "true")
+            .attr("height", 4)
+            .attr("width", d => dateScale(parseDate(d.last_day_all)) - dateScale(parseDate("9/17/2026")))
+            .attr("x", d => dateScale(parseDate("9/17/2026")))
+            .attr("y", d => stateScale(d.Abb) - 2) // subtract half of rect height to center
+            .attr("fill", "#ffe4a4")
+            .attr("z-index", -1);
+
+    var overlapLines = main.append("g")
+        .attr("id", "overlap-lines")
+        .selectAll("rect")
+        .data(advData)
+        .enter()
+            .append("rect")
+            .attr("class", d => d.Abb)
+            .classed("overlap", "true")
+            .attr("height", 4)
+            .attr("width", d => dateScale(parseDate(d.last_day_all)) - dateScale(parseDate(d.SDR_start)))
+            .attr("x", d => dateScale(parseDate(d.SDR_start)))
+            .attr("y", d => stateScale(d.Abb) - 2) // subtract half of rect height to center
+            .attr("fill", "#3b9171");
+
+    var sdrStart = main.append("g")
+        .attr("id", "sdr-start")
+        .selectAll("circle")
+        .data(sdrData)
+        .enter()
+            .append("circle")
+            .attr("class", d => d.Abb)
+            .classed("sdr", true)
+            .classed("sdr-start", true)
+            .attr("r", 5)
+            .attr("cx", d => dateScale(parseDate(d.SDR_start)))
+            .attr("cy", d => stateScale(d.Abb))
+            .attr("fill", "#345188");
+
+    var sdrEnd = main.append("g")
+        .attr("id", "sdr-end")
+        .selectAll("circle")
+        .data(sdrData)
+        .enter()
+            .append("circle")
+            .attr("class", d => d.Abb)
+            .classed("sdr", true)
+            .classed("sdr-end", true)
+            .attr("r", 5)
+            .attr("cx", d => dateScale(parseDate(d.SDR_end)))
+            .attr("cy", d => stateScale(d.Abb))
+            .attr("fill", "#345188");
+
+    var advDay = main.append("g")
+        .attr("id", "adv-day")
+        .selectAll("circle")
+        .data(advData)
+        .enter()
+            .append("circle")
+            .attr("class", d => d.Abb)
+            .classed("adv", true)
+            .classed("adv-day", true)
+            .attr("r", 5)
+            .attr("cx", d => dateScale(parseDate(d.last_day_all)))
+            .attr("cy", d => stateScale(d.Abb))
+            .attr("fill", "#d29d15");
+
+    var overlapDay = main.append("g")
+        .attr("id", "overlap-day")
+        .selectAll("circle")
+        .data(dayData)
+        .enter()
+            .append("circle")
+            .attr("class", d => d.Abb)
+            .classed("overlap", true)
+            .classed("overlap-day", true)
+            .attr("r", 5)
+            .attr("cx", d => dateScale(parseDate(d.last_day_all)))
+            .attr("cy", d => stateScale(d.Abb))
+            .attr("fill", "#3b9171");
+
+    // #endregion
+
+    // #region TOOLTIP
+    var showTooltip = function(e, d) {
+        tooltip
+            .style("left", (e.pageX + 15) + "px")
+            .style("top", (e.pageY - 50) + "px")
+            .style("opacity", 1);
+
+        tooltipState.html(d.State)
+        
+        if (d3.select(this).classed("sdr-start")) {
+            tooltipText.html("SDR Start: " + d.SDR_start);
+        } else if (d3.select(this).classed("sdr-end")) {
+            tooltipText.html("SDR End: " + d.SDR_end);
+        } else if (d3.select(this).classed("adv-day")) {
+            tooltipText.html("Last Advance Day: " + d.last_day_all);
+        } else if (d3.select(this).classed("overlap-day")) {
+            tooltipText.html("Advance + Same Day: " + d.last_day_all);
+        };
+    };
+
+    var moveTooltip = function(e, d) {
+        tooltip
+            .style("left", (e.pageX + 15) + "px")
+            .style("top", (e.pageY - 50) + "px")
+            .style("opacity", 1);
+
+        tooltipState.html(d.State)
+
+        if (d3.select(this).classed("sdr-start")) {
+            tooltipText.html("SDR Start: " + d.SDR_start);
+        } else if (d3.select(this).classed("sdr-end")) {
+            tooltipText.html("SDR End: " + d.SDR_end);
+        } else if (d3.select(this).classed("adv-day")) {
+            tooltipText.html("Last Advance Day: " + d.last_day_all);
+        } else if (d3.select(this).classed("overlap-day")) {
+            tooltipText.html("Advance + Same Day: " + d.last_day_all);
+        };
+    };
+
+    var hideTooltip = function(e, d) {
+        tooltip.transition()
+            .duration(100)
+            .style("opacity", 0);
+    };
+
+    sdrStart
+        .on("mouseover", showTooltip)
+        .on("mousemove", moveTooltip)
+        .on("mouseout", hideTooltip);
+
+    sdrEnd
+        .on("mouseover", showTooltip)
+        .on("mousemove", moveTooltip)
+        .on("mouseout", hideTooltip);
+
+    advDay
+        .on("mouseover", showTooltip)
+        .on("mousemove", moveTooltip)
+        .on("mouseout", hideTooltip);
+
+    overlapDay
+        .on("mouseover", showTooltip)
+        .on("mousemove", moveTooltip)
+        .on("mouseout", hideTooltip);
+
+    
+    var sdrSelected = true;
+    var advSelected = true;
+
+    // #endregion
+
+    // #region TOGGLE
+    var toggleSDR = function() {
+        if (sdrSelected == false) {
+            d3.selectAll(".sdr")
+                .transition()
+                .duration(500)
+                .style("opacity", 1);
+                
+            d3.selectAll(".overlap")
+                .transition()
+                .duration(500)
+                .style("opacity", 1);
+
+            d3.select(this)
+                .transition()
+                .duration(500)
+                .style("opacity", 1);
+
+            sdrEnd
+                .style("pointer-events", "auto")
+
+            sdrStart
+                .style("pointer-events", "auto")
+
+            overlapDay
+                .style("pointer-events", "auto")
+
+            sdrSelected = true;
+        } else {
+            d3.selectAll(".sdr")
+                .transition()
+                .duration(500)
+                .style("opacity", 0);
+                
+            d3.selectAll(".overlap")
+                .transition()
+                .duration(500)
+                .style("opacity", 0);
+
+            d3.select(this)
+                .transition()
+                .duration(500)
+                .style("opacity", 0.5);
+
+            sdrStart
+                .style("pointer-events", "none")
+
+            sdrEnd
+                .style("pointer-events", "none")
+
+            overlapDay
+                .style("pointer-events", "none")
+
+            sdrSelected = false;
+        }
+    };
+
+    var toggleADV = function() {
+        if (advSelected == false) {
+            d3.selectAll(".adv")
+                .transition()
+                .duration(500)
+                .style("opacity", 1);
+                
+            d3.selectAll(".overlap")
+                .transition()
+                .duration(500)
+                .style("opacity", 1);
+
+            d3.select(this)
+                .transition()
+                .duration(500)
+                .style("opacity", 1);
+
+            advDay
+                .style("pointer-events", "auto")
+
+            overlapDay
+                .style("pointer-events", "auto")
+
+            advSelected = true;
+        } else {
+            d3.selectAll(".adv")
+                .transition()
+                .duration(500)
+                .style("opacity", 0);
+                
+            d3.selectAll(".overlap")
+                .transition()
+                .duration(500)
+                .style("opacity", 0);
+
+            d3.select(this)
+                .transition()
+                .duration(500)
+                .style("opacity", 0.5);
+
+            advDay
+                .style("pointer-events", "none")
+
+            overlapDay
+                .style("pointer-events", "none")
+
+            advSelected = false;
+        }
+    };
+
+    sdrBtn
+        .on("click", toggleSDR);
+
+    advBtn.on("click", toggleADV)
+
+    // #endregion
+
+
+    d3.selectAll("text")
+        .style("font-family", "'Source Serif 4', sans-serif");
+
+    graph.attr("transform", "translate(65, 70)");
+    console.log("END")
+});
