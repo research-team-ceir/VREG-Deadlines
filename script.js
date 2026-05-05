@@ -1,5 +1,15 @@
 // #region SETUP
 
+// function to center items on the svg
+var bodyWidth = document.getElementsByTagName("body")[0].getBoundingClientRect().width;
+
+function center(selection) {
+    var width = selection.node().getBoundingClientRect().width;
+    var x = selection.node().getBoundingClientRect().x;
+    selection.attr("transform", "translate(" + ((666-width) / 2 - (x-((bodyWidth-666)/2))) + ", 0)");
+};
+
+// html setup
 d3.select("body")
     .append("div")
     .attr("id", "vreg-deadlines")
@@ -9,20 +19,18 @@ d3.select("body")
         .style("max-width", "666px")
         .style("margin-left", "auto")
         .style("margin-right", "auto")
+        .style("font-family", "'Source Serif 4', sans-serif");
 
 d3.select("#vreg-deadlines")
     .append("h3")
         .text("Availability of Advance Voter Registration and Same-Day Registration, 2026 General Election")
         .style("text-align", "center")
-        .style("font-size", "24px")
-        .style("font-family", "Source Serif 4");
+        .style("font-size", "24px");
 
 var svg = d3.select("#vreg-deadlines")
     .append("svg")
-        .attr("width", 666)
-        .attr("height", 815);
-
-var bodyWidth = document.getElementsByTagName("body")[0].getBoundingClientRect().width;
+    .attr("width", "100%")
+    .attr("viewBox", "0 0 666 850");
 
 // #region TOOLTIP SETUP
 
@@ -51,7 +59,10 @@ var tooltipText = tooltipContent.append("p")
 // #endregion
 
 // #region LEGEND
-var legend = svg.append("g")
+var legendContainer = svg.append("g")
+    .attr("id", "legend-container");
+
+var legend = legendContainer.append("g")
     .attr("id", "legend");
 
 var advBtn = legend
@@ -88,9 +99,7 @@ legend
         .attr("x", 290)
         .attr("y", 25);
 
-var legendWidth = legend.node().getBoundingClientRect().width;
-var legendx = legend.node().getBoundingClientRect().x;
-legend.attr("transform", "translate(" + ((666-legendWidth) / 2 - (legendx-((bodyWidth-666)/2))) + ", 0)");
+legend.call(center);
 
 var overlapLegend = legend.append("g")
     .attr("id", "overlap-legend")
@@ -108,16 +117,28 @@ overlapLegend
         .attr("x", 35)
         .attr("y", 50);
 
-var overlapLegendWidth = overlapLegend.node().getBoundingClientRect().width;
-var overlapLegendx = overlapLegend.node().getBoundingClientRect().x;
-overlapLegend.attr("transform", "translate(" + ((666-overlapLegendWidth) / 2 - (overlapLegendx-((bodyWidth-666)/2))) + ", 0)");
+overlapLegend.call(center);
 
+// source
+legendContainer
+    .append("text")
+    .text("Source: CEIR, \"2026 Voter Registration Deadlines\"")
+    .attr("x", 25)
+    .attr("y", 850-20)
+    .style("font-size", "11px")
+    .style("color", "#555555");
+
+// logo
+legendContainer.append("svg:image")
+    .attr("xlink:href", "images/CEIR_Logo_Vertical_OneColor_LightBlue.png")
+    .attr("x", 666-50)
+    .attr("y", 10)
+    .attr("width", 50)
+    .attr("height", 50);
 
 // #endregion
 
 var graph = svg.append("g")
-
-
 
 Promise.all([
     d3.csv("data/VREG_deadlines.csv")
@@ -181,6 +202,8 @@ Promise.all([
         
     var parseDate = d3.timeParse("%m/%d/%Y");
 
+    d3.selectAll("text").style("font-family", "'Source Serif 4', sans-serif");
+    
     // #endregion
 
     // #region DATA
@@ -495,10 +518,5 @@ Promise.all([
 
     // #endregion
 
-
-    d3.selectAll("text")
-        .style("font-family", "'Source Serif 4', sans-serif");
-
     graph.attr("transform", "translate(65, 70)");
-    console.log("END")
 });
