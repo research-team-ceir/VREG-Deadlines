@@ -3,10 +3,10 @@
 // function to center items on the svg
 var bodyWidth = document.getElementsByTagName("body")[0].getBoundingClientRect().width;
 
-function center(selection) {
+function center(selection, y) {
     var width = selection.node().getBoundingClientRect().width;
     var x = selection.node().getBoundingClientRect().x;
-    selection.attr("transform", "translate(" + ((666-width) / 2 - (x-((bodyWidth-666)/2))) + ", 0)");
+    selection.attr("transform", "translate(" + ((666-width) / 2 - (x-((bodyWidth-666)/2))) + "," + y + ")");
 };
 
 // html setup
@@ -99,7 +99,7 @@ legend
         .attr("x", 290)
         .attr("y", 25);
 
-legend.call(center);
+legend.call(center, 0);
 
 var overlapLegend = legend.append("g")
     .attr("id", "overlap-legend")
@@ -117,7 +117,7 @@ overlapLegend
         .attr("x", 35)
         .attr("y", 50);
 
-overlapLegend.call(center);
+overlapLegend.call(center, 0);
 
 // source
 legendContainer
@@ -518,5 +518,5 @@ Promise.all([
 
     // #endregion
 
-    graph.attr("transform", "translate(65, 70)");
+    graph.call(center, 70);
 });
