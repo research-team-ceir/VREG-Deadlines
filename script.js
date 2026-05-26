@@ -30,11 +30,6 @@ var svg = d3.select("#vreg-deadlines")
     .attr("width", "100%")
     .attr("viewBox", "0 0 666 850");
 
-d3.select("body")
-    .on("mouseover", function(e) {
-        console.log(e.offsetX)
-    })
-
 // #region TOOLTIP SETUP
 
 var tooltip = d3.select("#vreg-deadlines")
@@ -145,7 +140,7 @@ var graph = svg.append("g")
     .attr("id", "graph")
 
 Promise.all([
-    d3.csv("data/VREG_deadlines.csv")
+    d3.dsv("|", "data/VREG_deadlines.csv")
 ]).then(function([deadlines]) {
 
     var abb = deadlines.map(function(d) {
@@ -218,15 +213,15 @@ Promise.all([
     });
 
     var advData = deadlines.filter(function (d) {
-        return d.last_day_all != 'NA';
+        return d.last_day_one != 'NA';
     });
 
     var overlapData = deadlines.filter(function (d) {
-        return d.SDR_start != 'NA' &  d.last_day_all != 'NA' & (parseDate(d.last_day_all) > parseDate(d.SDR_start)) ;
+        return d.SDR_start != 'NA' &  d.last_day_one != 'NA' & (parseDate(d.last_day_one) > parseDate(d.SDR_start)) ;
     });
 
     var dayData = deadlines.filter(function (d) {
-        return d.SDR_start == d.last_day_all;
+        return d.SDR_start == d.last_day_one;
     });
 
     // #endregion
@@ -259,22 +254,28 @@ Promise.all([
             .attr("class", d => d.Abb)
             .classed("adv", "true")
             .attr("height", 4)
-            .attr("width", d => dateScale(parseDate(d.last_day_all)) - dateScale(parseDate("9/17/2026")))
+            .attr("width", d => dateScale(parseDate(d.last_day_one)) - dateScale(parseDate("9/17/2026")))
             .attr("x", d => dateScale(parseDate("9/17/2026")))
             .attr("y", d => stateScale(d.Abb) - 2) // subtract half of rect height to center
-            .attr("fill", "#ffe4a4")
-            .attr("z-index", -1);
+            .attr("fill", "#ffe4a4");
+
 
     var overlapLines = main.append("g")
         .attr("id", "overlap-lines")
         .selectAll("rect")
-        .data(advData)
+        .data(deadlines.filter(d => d.last_day_one != "NA" & d.SDR_end != "NA" & d.SDR_start != "NA"))
         .enter()
             .append("rect")
             .attr("class", d => d.Abb)
             .classed("overlap", "true")
             .attr("height", 4)
-            .attr("width", d => dateScale(parseDate(d.last_day_all)) - dateScale(parseDate(d.SDR_start)))
+            .attr("width", function(d) {
+                if (d.last_day_one < d.SDR_end) {
+                    return dateScale(parseDate(d.last_day_one)) - dateScale(parseDate(d.SDR_start))
+                } else {
+                    return dateScale(parseDate(d.SDR_end)) - dateScale(parseDate(d.SDR_start))
+                }
+            })
             .attr("x", d => dateScale(parseDate(d.SDR_start)))
             .attr("y", d => stateScale(d.Abb) - 2) // subtract half of rect height to center
             .attr("fill", "#3b9171");
@@ -282,7 +283,7 @@ Promise.all([
     var sdrStart = main.append("g")
         .attr("id", "sdr-start")
         .selectAll("circle")
-        .data(sdrData)
+        .data(sdrData.filter(d => d.SDR_start != d.SDR_end))
         .enter()
             .append("circle")
             .attr("class", d => d.Abb)
@@ -296,7 +297,7 @@ Promise.all([
     var sdrEnd = main.append("g")
         .attr("id", "sdr-end")
         .selectAll("circle")
-        .data(sdrData)
+        .data(sdrData.filter(d => d.SDR_start != d.SDR_end))
         .enter()
             .append("circle")
             .attr("class", d => d.Abb)
@@ -304,6 +305,26 @@ Promise.all([
             .classed("sdr-end", true)
             .attr("r", 5)
             .attr("cx", d => dateScale(parseDate(d.SDR_end)))
+            .attr("cy", d => stateScale(d.Abb))
+            .attr("fill", "#345188");
+
+    var sdrDay = main.append("g")
+        .attr("id", "sdr-day")
+        .selectAll("circle")
+        .data(sdrData.filter(d => d.SDR_start == d.SDR_end | d.EDR == "Yes"))
+        .enter()
+            .append("circle")
+            .attr("class", d => d.Abb)
+            .classed("sdr", true)
+            .classed("sdr-day", true)
+            .attr("r", 5)
+            .attr("cx", function(d) {
+                if (d.EDR == "Yes") {
+                    return dateScale(parseDate("11/3/2026"))
+                } else {
+                    return dateScale(parseDate(d.SDR_end))
+                }
+            })
             .attr("cy", d => stateScale(d.Abb))
             .attr("fill", "#345188");
 
@@ -317,7 +338,7 @@ Promise.all([
             .classed("adv", true)
             .classed("adv-day", true)
             .attr("r", 5)
-            .attr("cx", d => dateScale(parseDate(d.last_day_all)))
+            .attr("cx", d => dateScale(parseDate(d.last_day_one)))
             .attr("cy", d => stateScale(d.Abb))
             .attr("fill", "#d29d15");
 
@@ -331,7 +352,7 @@ Promise.all([
             .classed("overlap", true)
             .classed("overlap-day", true)
             .attr("r", 5)
-            .attr("cx", d => dateScale(parseDate(d.last_day_all)))
+            .attr("cx", d => dateScale(parseDate(d.last_day_one)))
             .attr("cy", d => stateScale(d.Abb))
             .attr("fill", "#3b9171");
 
@@ -346,10 +367,12 @@ Promise.all([
             tooltipText.html("SDR start: " + d.SDR_start);
         } else if (d3.select(this).classed("sdr-end")) {
             tooltipText.html("SDR end: " + d.SDR_end);
+        } else if (d3.select(this).classed("sdr-day")) {
+            tooltipText.html("SDR end: " + d.SDR_end);
         } else if (d3.select(this).classed("adv-day")) {
-            tooltipText.html("Last advance day: " + d.last_day_all);
+            tooltipText.html("Last advance day: " + d.last_day_one);
         } else if (d3.select(this).classed("overlap-day")) {
-            tooltipText.html("Advance + SDR: " + d.last_day_all);
+            tooltipText.html("Advance + SDR: " + d.last_day_one);
         };
         
         var tooltipHeight = tooltip.node().getBoundingClientRect().height;
@@ -380,6 +403,11 @@ Promise.all([
         .on("mouseout", hideTooltip);
 
     sdrEnd
+        .on("mouseover", showTooltip)
+        .on("mousemove", showTooltip)
+        .on("mouseout", hideTooltip);
+
+    sdrDay
         .on("mouseover", showTooltip)
         .on("mousemove", showTooltip)
         .on("mouseout", hideTooltip);
