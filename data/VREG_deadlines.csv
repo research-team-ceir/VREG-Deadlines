@@ -1,4 +1,4 @@
-State|Abb|basic|online|mail_receive|mail_postmark|SDR_start|SDR_end|EDR|last_day_all|last_day_one
+State|Abb|basic|online|mail_receive|mail_postmark|SDR_start|SDR_end|election_day|last_day_all|last_day_one
 Alabama|AL|10/19/2026|10/19/2026|Provision for missing or illegible postmark|10/19/2026|NA|NA|NA|10/19/2026|10/19/2026
 Alaska|AK|10/4/2026|10/4/2026|Provision for missing or illegible postmark|10/4/2026|NA|NA|NA|10/4/2026|10/4/2026
 Arizona|AZ|10/5/2026|10/5/2026|Provision for missing or illegible postmark|10/5/2026|NA|NA|NA|10/5/2026|10/5/2026
@@ -28,7 +28,7 @@ Missouri|MO|10/7/2026|10/7/2026|NA|10/7/2026|NA|NA|NA|10/7/2026|10/7/2026
 Montana|MT|10/5/2026|NA|10/8/2026|10/5/2026|10/5/2026|11/3/2026|Yes|10/5/2026|10/5/2026
 Nebraska|NE|10/23/2026|10/16/2026|Provision for missing or illegible postmark|10/16/2026|NA|NA|NA|10/16/2026|10/23/2026
 Nevada|NV|10/6/2026|11/2/2026|NA|10/6/2026|10/17/2026|10/30/2026|Yes|10/6/2026|11/2/2026
-New Hampshire|NH|10/21/2026|NA|NA|NA|11/3/2026|11/3/2026|Yes|10/21/2026|10/21/2026
+New Hampshire|NH|10/21/2026|NA|NA|NA|NA|NA|Yes|10/21/2026|10/21/2026
 New Jersey|NJ|10/13/2026|10/13/2026|10/13/2026|NA|NA|NA|NA|10/13/2026|10/13/2026
 New Mexico|NM|10/6/2026|10/6/2026|10/9/2026|10/6/2026|10/6/2026|10/31/2026|Yes|10/6/2026|10/6/2026
 New York|NY|10/24/2026|10/24/2026|10/24/2026|Provision for missing or ineligible postmark|10/24/2026|10/24/2026|No|10/24/2026|10/24/2026

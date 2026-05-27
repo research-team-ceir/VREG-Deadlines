@@ -190,7 +190,7 @@ Promise.all([
     
     // SDR data
     var sdrData = deadlines.filter(function (d) {
-        return d.SDR_start != 'NA';
+        return d.SDR_start != 'NA' | d.election_day != "NA";
     });
 
     var advData = deadlines.filter(function (d) {
@@ -292,7 +292,7 @@ Promise.all([
     var sdrDay = main.append("g")
         .attr("id", "sdr-day")
         .selectAll("circle")
-        .data(sdrData.filter(d => (d.SDR_start == d.SDR_end | d.EDR == "Yes") & d.SDR_end != "11/3/2026"))
+        .data(sdrData.filter(d => (d.SDR_start == d.SDR_end | d.election_day == "Yes") & d.SDR_end != "11/3/2026"))
         .enter()
             .append("circle")
             .attr("class", d => d.Abb)
@@ -300,10 +300,10 @@ Promise.all([
             .classed("sdr-day", true)
             .attr("r", 5)
             .attr("cx", function(d) {
-                if (d.EDR == "Yes") {
-                    return dateScale(parseDate("11/3/2026"))
+                if (d.election_day == "Yes") {
+                    return dateScale(parseDate("11/3/2026"));
                 } else {
-                    return dateScale(parseDate(d.SDR_end))
+                    return dateScale(parseDate(d.SDR_end));
                 }
             })
             .attr("cy", d => stateScale(d.Abb))
