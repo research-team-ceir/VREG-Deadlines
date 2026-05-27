@@ -117,25 +117,6 @@ overlapLegend
 
 overlapLegend.call(center, 0);
 
-// source
-legendContainer
-    .append("text")
-    .text("Source: CEIR, \"2026 Voter Registration Deadlines\"")
-    .attr("x", 25)
-    .attr("y", 850-20)
-    .style("font-size", "11px")
-    .style("color", "#555555");
-
-// logo
-legendContainer.append("svg:image")
-    .attr("xlink:href", "images/CEIR_Logo_Vertical_OneColor_LightBlue.png")
-    .attr("x", 666-50)
-    .attr("y", 10)
-    .attr("width", 50)
-    .attr("height", 50);
-
-// #endregion
-
 var graph = svg.append("g")
     .attr("id", "graph")
 
@@ -358,6 +339,37 @@ Promise.all([
 
     // #endregion
 
+    // #region LOGO
+    var logo = svg.append("g")
+        .attr("id", "logo");
+
+    var source = svg.append("g")
+        .attr("id", "source");
+
+    // source
+    source
+        .append("text")
+        .text("Source: CEIR, \"2026 Voter Registration Deadlines\"")
+        .attr("x", 10)
+        .attr("y", graph.node().getBBox().y + graph.node().getBBox().height + 25)
+        .style("font-size", "11px")
+        .style("color", "#555555");
+
+    source.attr("transform", "translate(0, 70)")
+
+    // logo
+    logo
+        .append("svg:image")
+        .attr("xlink:href", "images/CEIR_Logo_Vertical_OneColor_LightBlue.png")
+        .attr("x", 666-60)
+        .attr("y", 0)
+        .attr("width", 50)
+        .attr("height", 50);
+
+    graph.call(center, 70);
+
+    // #endregion
+
     // #region TOOLTIP
 
     var showTooltip = function(e, d) {
@@ -548,6 +560,4 @@ Promise.all([
     advBtn.on("click", toggleADV)
 
     // #endregion
-
-    d3.select("#graph").call(center, 70);
 });
