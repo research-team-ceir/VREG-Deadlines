@@ -202,7 +202,7 @@ Promise.all([
     });
 
     var dayData = deadlines.filter(function (d) {
-        return d.SDR_start == d.last_day_one;
+        return d.SDR_start == d.last_day_one | d.SDR_end == d.last_day_one;
     });
 
     // #endregion
@@ -244,7 +244,7 @@ Promise.all([
     var overlapLines = main.append("g")
         .attr("id", "overlap-lines")
         .selectAll("rect")
-        .data(deadlines.filter(d => d.last_day_one != "NA" & d.SDR_end != "NA" & d.SDR_start != "NA"))
+        .data(deadlines.filter(d => d.last_day_one != "NA" & d.SDR_end != "NA" & d.SDR_start != "NA" & d.SDR_start > d.last_day_one))
         .enter()
             .append("rect")
             .attr("class", d => d.Abb)
