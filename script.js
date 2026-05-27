@@ -244,7 +244,7 @@ Promise.all([
     var overlapLines = main.append("g")
         .attr("id", "overlap-lines")
         .selectAll("rect")
-        .data(deadlines.filter(d => d.last_day_one != "NA" & d.SDR_end != "NA" & d.SDR_start != "NA" & d.SDR_start > d.last_day_one))
+        .data(deadlines.filter(d => d.last_day_one != "NA" & d.SDR_end != "NA" & d.SDR_start != "NA" & dateScale(parseDate(d.SDR_start)) < dateScale(parseDate(d.last_day_one))))
         .enter()
             .append("rect")
             .attr("class", d => d.Abb)
@@ -292,7 +292,7 @@ Promise.all([
     var sdrDay = main.append("g")
         .attr("id", "sdr-day")
         .selectAll("circle")
-        .data(sdrData.filter(d => d.SDR_start == d.SDR_end | d.EDR == "Yes"))
+        .data(sdrData.filter(d => (d.SDR_start == d.SDR_end | d.EDR == "Yes") & d.SDR_end != "11/3/2026"))
         .enter()
             .append("circle")
             .attr("class", d => d.Abb)
@@ -380,7 +380,7 @@ Promise.all([
         } else if (d3.select(this).classed("sdr-end")) {
             tooltipText.html("SDR end: " + d.SDR_end);
         } else if (d3.select(this).classed("sdr-day")) {
-            tooltipText.html("SDR end: " + d.SDR_end);
+            tooltipText.html("SDR available: " + d.SDR_end);
         } else if (d3.select(this).classed("adv-day")) {
             tooltipText.html("Last advance day: " + d.last_day_one);
         } else if (d3.select(this).classed("overlap-day")) {
