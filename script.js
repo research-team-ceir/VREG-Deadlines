@@ -380,7 +380,11 @@ Promise.all([
         } else if (d3.select(this).classed("sdr-end")) {
             tooltipText.html("SDR end: " + d.SDR_end);
         } else if (d3.select(this).classed("sdr-day")) {
-            tooltipText.html("SDR available: " + d.SDR_end);
+            if (d.election_day == "Yes") {
+                tooltipText.html("SDR available: 11/3/2026");
+            } else {
+                tooltipText.html("SDR available: " + d.SDR_end);
+            }
         } else if (d3.select(this).classed("adv-day")) {
             tooltipText.html("Last advance day: " + d.last_day_one);
         } else if (d3.select(this).classed("overlap-day")) {
