@@ -2,9 +2,11 @@
 
 // function to center items on the svg
 function center(selection, y) {
-    var width = selection.node().getBBox().width;
-    var x = selection.node().getBBox().x;
-    selection.attr("transform", "translate(" + ((666-width)/2 - x) + "," + y + ")");
+    document.fonts.ready.then(function() {
+        var width = selection.node().getBBox().width;
+        var x = selection.node().getBBox().x;
+        selection.attr("transform", "translate(" + ((666-width)/2 - x) + "," + y + ")");
+    });
 };
 
 // html setup
